@@ -3,6 +3,9 @@
 ##
 image: "mysql"
 imageTag: "5.7.21"
+app: "mysql"
+replicas:
+  servers: 4
 
 tolerations: 
   - key: "mysql" 

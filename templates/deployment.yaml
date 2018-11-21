@@ -8,6 +8,7 @@ metadata:
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
+  replicas: {{ .Values.replicas.servers }}
   template:
     metadata:
       labels:
@@ -24,7 +25,7 @@ spec:
                     - {{ template "mysql.fullname" . }}
               topologyKey: "kubernetes.io/hostname"
       nodeSelector:
-        mysql: true
+        {{ .Values.app }}: true
       {{- if .Values.tolerations }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
@@ -58,8 +59,15 @@ spec:
         - name: MYSQL_DATABASE
           value: {{ default "" .Values.mysqlDatabase | quote }}
         ports:
-        - name: mysql
-          containerPort: 3306
+          - name: mysql
+            containerPort: 3306
+            hostPort: 3306
+        securityContext:
+          capabilities:
+            drop: 
+            - ALL
+            add: 
+            - NET_BIND_SERVICE
         livenessProbe:
           exec:
             command:
@@ -87,7 +95,7 @@ spec:
           mountPath: /var/lib/mysql
           subPath: data
         - name: data
-          mountPath: /etc/mysql/conf.d
+          mountPath: /etc/mysql
           subPath: conf
       volumes:
       - name: data
